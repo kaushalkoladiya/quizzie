@@ -20,6 +20,8 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { SUPPORTED_MIME_TYPES } from './constants/constants';
+import ErrorMessage from './components/Alert';
 
 export default function Home() {
   const [studyMaterial, setStudyMaterial] = useState('');
@@ -32,11 +34,24 @@ export default function Home() {
     correctAnswer: number;
   }> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fileError, setFileError] = useState('')
   const router = useRouter();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+    const _file = e.target?.files?.[0];
+    if (_file) {
+      _file.type
+
+      const isValidFileType = SUPPORTED_MIME_TYPES.find(x => x === _file.type)
+
+      if (!isValidFileType) {
+        setFileError('Selected File type is not supported. Currently, it only supports image.')
+        return;
+      } else {
+        setFileError('')
+      }
+
+      setFile(_file)
     }
   };
 
@@ -83,12 +98,14 @@ export default function Home() {
             className='mb-4'
           />
           <div>
-            <p className='leading-7'>Select Files</p>
+            <p className='leading-7'>Select File</p>
             <Input
               type='file'
               onChange={handleFileChange}
               className='mb-4'
             />
+            {/* error message */}
+            {fileError && <ErrorMessage text={fileError} />}
           </div>
 
           <div className='mb-4'>
@@ -168,89 +185,3 @@ export default function Home() {
   );
 }
 
-// 'use client'
-
-// import { useState } from 'react'
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-
-// export default function Home() {
-//   const [studyMaterial, setStudyMaterial] = useState('')
-//   const [quiz, setQuiz] = useState<Array<{
-//     question: string;
-//     options: string[];
-//     correctAnswer: number;
-//   }> | null>(null)
-//   const [loading, setLoading] = useState(false)
-
-//   const generateQuiz = async () => {
-//     setLoading(true)
-//     try {
-//       const response = await fetch('/api/generate-quiz', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ studyMaterial })
-//       })
-//       const data = await response.json()
-//       setQuiz(data.quiz)
-//     } catch (error) {
-//       console.error('Error generating quiz:', error)
-//     }
-//     setLoading(false)
-//   }
-
-//   return (
-//     <div className="container mx-auto p-4">
-//       <h1 className="text-2xl font-bold mb-4">AI Quiz Generator</h1>
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>Enter Study Material</CardTitle>
-//           <CardDescription>Paste your study material here to generate a quiz.</CardDescription>
-//         </CardHeader>
-//         <CardContent>
-//           <Input
-//             value={studyMaterial}
-//             onChange={(e) => setStudyMaterial(e.target.value)}
-//             placeholder="Enter your study material here..."
-//             className="mb-4"
-//           />
-//           <Button onClick={generateQuiz} disabled={loading}>
-//             {loading ? 'Generating...' : 'Generate Quiz'}
-//           </Button>
-//         </CardContent>
-//       </Card>
-
-//       {quiz && (
-//         <Card className="mt-8">
-//           <CardHeader>
-//             <CardTitle>Generated Quiz</CardTitle>
-//           </CardHeader>
-//           <CardContent>
-//             {quiz.map((question, index) => (
-//               <div key={index} className="mb-4">
-//                 <p className="font-semibold">{question.question}</p>
-//                 {question.options.map((option, optionIndex: number) => (
-//                   <div key={optionIndex} className="ml-4">
-//                     <label>
-//                       <input
-//                         type="radio"
-//                         name={`question-${index}`}
-//                         value={optionIndex}
-//                         className="mr-2"
-//                       />
-//                       {option}
-//                     </label>
-//                   </div>
-//                 ))}
-//               </div>
-//             ))}
-//           </CardContent>
-//           <CardFooter>
-//             <Button>Submit Quiz</Button>
-//           </CardFooter>
-//         </Card>
-//       )}
-//     </div>
-//   )
-// }
